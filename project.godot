@@ -12,7 +12,11 @@ config_version=5
 
 config/name="Alma de Cristal"
 config/features=PackedStringArray("4.3", "GL Compatibility")
-config/icon="res://icon.svg"
+
+[display]
+
+window/size/resizable=false
+window/stretch/mode="viewport"
 
 [rendering]
 

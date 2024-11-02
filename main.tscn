@@ -1,0 +1,550 @@
+[gd_scene load_steps=7 format=4 uid="uid://gvq162dfhic"]
+
+[ext_resource type="AudioStream" uid="uid://cc3sigo6i3d7e" path="res://audio/ost/Miss You Back.mp3" id="1_01j4k"]
+
+[sub_resource type="GDScript" id="GDScript_j7045"]
+script/source = "extends Control
+# Please check the documentation about
+# Displayserver class : https://docs.godotengine.org/en/stable/classes/class_displayserver.html
+
+#--
+# Check out Colorblind addon for godot : https://github.com/paulloz/godot-colorblindness
+#--
+
+# Config file
+# Move it into a singleton
+var settings_file = ConfigFile.new()
+#--
+var vsync: int = 0
+# I'm a Vector3 instead of 3 var float
+# - x : General , y : Music , z : SFX
+var audio: Vector3 = Vector3(70.0, 70.0, 70.0)
+var display_resolution : Vector2i = DisplayServer.screen_get_size()
+
+
+@onready var resolution_option_button = get_node(\"%Resolution_Optionbutton\")
+@onready var option_container = get_node(\"%OptionContainer\")
+@onready var main_container = get_node(\"%MainContainer\")
+
+@onready var musicbar = %General_HScrollBar
+
+@onready var audio_player: AudioStreamPlayer = get_node(\"%audio_player\")
+
+
+
+
+func _get_resolution(index) -> Vector2i:
+	var resolution_arr = resolution_option_button.get_item_text(index).split(\"x\")
+	return Vector2i(int(resolution_arr[0]), int(resolution_arr[1]))
+
+
+func _check_resolution(resolution: Vector2i):
+	for i in resolution_option_button.get_item_count():
+		if _get_resolution(i) == resolution:
+			return i
+
+
+func _first_time() -> void:
+	DisplayServer.window_set_size(DisplayServer.screen_get_size())
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+	DisplayServer.window_set_vsync_mode(vsync)
+	resolution_option_button.select(_check_resolution(DisplayServer.screen_get_size()))
+	# -- Video
+	settings_file.set_value(\"VIDEO\", \"Resolution\", _get_resolution(resolution_option_button.get_index()))
+	settings_file.set_value(\"VIDEO\", \"vsync\", vsync)
+	settings_file.set_value(\"VIDEO\", \"Window Mode\", _get_resolution(resolution_option_button.get_index()))
+	settings_file.set_value(\"VIDEO\", \"Graphics\", _get_resolution(resolution_option_button.get_index()))
+	settings_file.set_value(\"VIDEO\", \"Color blind\", _get_resolution(resolution_option_button.get_index()))
+	# -- audio
+	settings_file.set_value(\"audio\", \"General\", audio.x)
+	settings_file.set_value(\"audio\", \"Music\", audio.y)
+	settings_file.set_value(\"audio\", \"SFX\", audio.z)
+
+	settings_file.save(\"res://settings.cfg\")
+
+
+func _load_settings():
+	if settings_file.load(\"res://settings.cfg\") != OK:
+		_first_time()
+	else:
+		display_resolution = settings_file.get_value(\"VIDEO\",\"Resolution\")
+		get_window().size = display_resolution
+		audio.x = settings_file.get_value(\"audio\", \"General\")
+		audio.y = settings_file.get_value(\"audio\", \"Music\")
+		audio.z =settings_file.get_value(\"audio\", \"SFX\")
+		%General_HScrollBar.value = audio.x 
+		# %Music_HScrollbar.value = audio.y
+		# %SFX_Hscrollbar.value = audio.z
+
+
+
+func _save_settings() -> void:
+	# -- Video
+	settings_file.set_value(\"VIDEO\", \"Resolution\", _get_resolution(resolution_option_button.get_index()))
+	settings_file.set_value(\"VIDEO\", \"vsync\", vsync)
+	settings_file.set_value(\"VIDEO\", \"Window Mode\", _get_resolution(resolution_option_button.get_index()))
+	settings_file.set_value(\"VIDEO\", \"Graphics\", _get_resolution(resolution_option_button.get_index()))
+	settings_file.set_value(\"VIDEO\", \"Color blind\", _get_resolution(resolution_option_button.get_index()))
+	# -- audio
+	settings_file.set_value(\"audio\", \"General\", audio.x)
+	settings_file.set_value(\"audio\", \"Music\", audio.y)
+	settings_file.set_value(\"audio\", \"SFX\", audio.z)
+
+	settings_file.save(\"res://settings.cfg\")
+
+
+func _ready():
+	_load_settings()
+	resolution_option_button.select(_check_resolution(display_resolution))
+
+
+func _on_start_button_pressed():
+	audio_player.stream = load(\"res://audio/sfx/press_start_button.mp3\")
+	audio_player.play()
+	# Put your load scene here
+	# Check the documentation https://docs.godotengine.org/en/stable/tutorials/scripting/change_scenes_manually.html
+	pass  # Replace with function body.
+
+
+func _on_option_button_pressed():
+	play_sfx_for_regular_button()
+	option_container.visible = true
+	main_container.visible = false
+
+
+func _on_exit_button_pressed():
+	get_tree().quit()
+
+
+# -- VIDEO TAB --
+
+
+func _on_resolution_optionbutton_item_selected(index):
+	get_window().size = _get_resolution(index)
+
+
+func _on_window_mode_optionbutton_item_selected(_index):
+	# no fullscreen
+	if _index == 0:
+		resolution_option_button.disabled = false
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	elif _index == 1:
+		resolution_option_button.disabled = true
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+
+
+func _on_preset_h_slider_value_changed(_value):
+	# start here https://docs.godotengine.org/en/stable/tutorials/3d/mesh_lod.html
+	pass  # Replace with function body.
+
+
+# -- audio TAB --
+
+
+func _on_general_h_scroll_bar_value_changed(value):
+	audio.x = value
+
+
+func _on_music_h_scroll_bar_value_changed(value):
+	audio.y = value
+
+
+func _on_sfx_h_scroll_bar_value_changed(value):
+	audio.z = value
+
+
+# -- Save and Exit buttons
+
+
+func _on_return_button_pressed():
+	play_sfx_for_regular_button()
+	main_container.visible = true
+	option_container.visible = false
+
+
+func _on_apply_button_pressed():
+	play_sfx_for_regular_button()
+	main_container.visible = true
+	option_container.visible = false
+	_save_settings()
+
+
+func _on_vsync_option_button_item_selected(index):
+	# check the documentation about vsync : https://docs.godotengine.org/en/stable/classes/class_displayserver.html#enum-displayserver-vsyncmode
+	vsync = index
+
+func play_sfx_for_regular_button():
+	audio_player.stream = load(\"res://audio/sfx/press_regular_button.mp3\")
+	audio_player.play()
+"
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_ipm35"]
+load_path = "res://.godot/imported/00000.png-7baa699ce59db30a6f325383b261ed0f.ctex"
+
+[sub_resource type="LabelSettings" id="LabelSettings_lqf2o"]
+font_size = 18
+
+[sub_resource type="GDScript" id="GDScript_1y7ui"]
+script/source = "extends Label
+
+func _ready():
+	self.text= str(get_parent().value) + \"%\"
+
+func _on_h_scroll_bar_value_changed(value):
+	self.text = str(value) + \"%\"
+"
+
+[sub_resource type="AudioStreamMP3" id="AudioStreamMP3_nncve"]
+data = PackedByteArray("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AydbqmymKqyiqbqdiAtBQoCCASzwWHEJAJOECI6kKngwYs2HAIlp4o+onIgpTJlpyKnXQy+fs1JHArvOCzJmK0VglkqNLzZQztxH7l9m5bnY1KaCnbOs1HItCARAYaMoDp4gMFCASKDiCZo0gTNSMB0LxCKUAVheogpBkRjqmcMEPlDIkkY4BhFglIRKkCQXPAhABFBACNit9Svhu5duVqtyvUt3rWNWtdqW71rHKtVuV7F+zlVq3LtS3ZtVa1a7Ur2LVLWzWUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=")
+
+[node name="main" type="Node"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MainMenu" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+script = SubResource("GDScript_j7045")
+
+[node name="Bg" type="TextureRect" parent="CanvasLayer/MainMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("CompressedTexture2D_ipm35")
+expand_mode = 1
+
+[node name="MainContainer" type="VBoxContainer" parent="CanvasLayer/MainMenu"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -50.0
+offset_right = 120.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Start_button" type="Button" parent="CanvasLayer/MainMenu/MainContainer"]
+layout_mode = 2
+text = "START"
+
+[node name="Option_button" type="Button" parent="CanvasLayer/MainMenu/MainContainer"]
+layout_mode = 2
+text = "OPTION"
+
+[node name="Exit_button" type="Button" parent="CanvasLayer/MainMenu/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "EXIT
+"
+
+[node name="OptionContainer" type="VBoxContainer" parent="CanvasLayer/MainMenu"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -250.0
+offset_right = 250.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TabContainer" type="TabContainer" parent="CanvasLayer/MainMenu/OptionContainer"]
+custom_minimum_size = Vector2(0, 500)
+layout_mode = 2
+tab_alignment = 1
+current_tab = 0
+
+[node name="Video" type="TabBar" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="General_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 26.0
+offset_top = 2.0
+offset_right = 95.0
+offset_bottom = 31.0
+text = "General"
+label_settings = SubResource("LabelSettings_lqf2o")
+
+[node name="Resolution_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 82.0
+offset_top = 42.0
+offset_right = 173.0
+offset_bottom = 68.0
+text = "Resolution :"
+
+[node name="Resolution_Optionbutton" type="OptionButton" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 26.0
+offset_top = 72.5
+offset_right = 210.0
+offset_bottom = 103.5
+item_count = 10
+popup/item_0/text = "640x480"
+popup/item_1/text = "800x600"
+popup/item_1/id = 1
+popup/item_2/text = "1024x768"
+popup/item_2/id = 2
+popup/item_3/text = "1280x720"
+popup/item_3/id = 3
+popup/item_4/text = "1366x768"
+popup/item_4/id = 4
+popup/item_5/text = "1600x900"
+popup/item_5/id = 5
+popup/item_6/text = "1920x1080"
+popup/item_6/id = 6
+popup/item_7/text = "2560x1440"
+popup/item_7/id = 7
+popup/item_8/text = "3840x2160"
+popup/item_8/id = 8
+popup/item_9/text = "7680x4320"
+popup/item_9/id = 9
+
+[node name="WindowMode_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 314.0
+offset_top = 42.0
+offset_right = 434.0
+offset_bottom = 68.0
+text = "Window Mode :"
+
+[node name="WindowMode_Optionbutton" type="OptionButton" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 73.0
+offset_right = 474.0
+offset_bottom = 105.0
+selected = 0
+item_count = 2
+popup/item_0/text = "no fullscreen"
+popup/item_1/text = "fullscreen only"
+popup/item_1/id = 1
+
+[node name="Vsync_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 132.0
+offset_right = 145.0
+offset_bottom = 158.0
+text = "Vsync"
+
+[node name="Vsync_OptionButton" type="OptionButton" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 26.0
+offset_top = 169.0
+offset_right = 210.0
+offset_bottom = 201.0
+selected = 0
+item_count = 4
+popup/item_0/text = "off"
+popup/item_1/text = "Normal"
+popup/item_1/id = 1
+popup/item_2/text = "Adaptative"
+popup/item_2/id = 2
+popup/item_3/text = "MailBox"
+popup/item_3/id = 3
+
+[node name="Color_blind" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 318.0
+offset_top = 131.0
+offset_right = 451.0
+offset_bottom = 157.0
+text = "Color blind mode"
+
+[node name="ColorBlind_OptionButton" type="OptionButton" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 169.0
+offset_right = 474.0
+offset_bottom = 200.0
+disabled = true
+selected = 0
+item_count = 4
+popup/item_0/text = "OFF"
+popup/item_1/text = "Protanopia"
+popup/item_1/id = 1
+popup/item_2/text = "Deuteranopia"
+popup/item_2/id = 2
+popup/item_3/text = "Tritanopia"
+popup/item_3/id = 3
+
+[node name="Graphics_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 26.0
+offset_top = 256.0
+offset_right = 103.0
+offset_bottom = 285.0
+text = "Graphics"
+label_settings = SubResource("LabelSettings_lqf2o")
+
+[node name="Preset_HSlider" type="HSlider" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video"]
+layout_mode = 0
+offset_left = 26.0
+offset_top = 342.0
+offset_right = 378.0
+offset_bottom = 358.0
+max_value = 20.0
+step = 5.0
+value = 5.0
+editable = false
+
+[node name="Preset_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video/Preset_HSlider"]
+layout_mode = 0
+offset_top = -24.0
+offset_right = 352.0
+offset_bottom = -1.0
+text = " Low  	   medium          high 	    very high      ultra"
+
+[node name="Sound" type="TabBar" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="General_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 46.0
+offset_right = 48.0
+offset_bottom = 69.0
+text = "General volume :"
+
+[node name="General_HScrollBar" type="HScrollBar" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 78.0
+offset_right = 458.0
+offset_bottom = 94.0
+value = 70.0
+rounded = true
+
+[node name="Scroll_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/General_HScrollBar"]
+layout_mode = 0
+offset_left = 456.0
+offset_top = -5.0
+offset_right = 489.0
+offset_bottom = 21.0
+text = "70%"
+script = SubResource("GDScript_1y7ui")
+
+[node name="Music_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 99.0
+offset_right = 142.0
+offset_bottom = 125.0
+text = "Music volume :"
+
+[node name="Music_HScrollBar" type="HScrollBar" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 124.0
+offset_right = 458.0
+offset_bottom = 140.0
+value = 67.0
+rounded = true
+
+[node name="Scroll_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/Music_HScrollBar"]
+layout_mode = 0
+offset_left = 456.0
+offset_top = -5.0
+offset_right = 489.0
+offset_bottom = 21.0
+text = "67%"
+script = SubResource("GDScript_1y7ui")
+
+[node name="SFX_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 146.0
+offset_right = 142.0
+offset_bottom = 172.0
+text = "SFX volume :"
+
+[node name="SFX_HScrollBar" type="HScrollBar" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 171.0
+offset_right = 458.0
+offset_bottom = 187.0
+value = 67.0
+rounded = true
+
+[node name="Scroll_Label" type="Label" parent="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/SFX_HScrollBar"]
+layout_mode = 0
+offset_left = 456.0
+offset_top = -5.0
+offset_right = 489.0
+offset_bottom = 21.0
+text = "67%"
+script = SubResource("GDScript_1y7ui")
+
+[node name="Container" type="HBoxContainer" parent="CanvasLayer/MainMenu/OptionContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="Apply_button" type="Button" parent="CanvasLayer/MainMenu/OptionContainer/Container"]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+text = "Apply
+"
+
+[node name="Return_button" type="Button" parent="CanvasLayer/MainMenu/OptionContainer/Container"]
+layout_mode = 2
+text = "Return
+"
+
+[node name="audio_player" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = SubResource("AudioStreamMP3_nncve")
+
+[node name="ost_player" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("1_01j4k")
+autoplay = true
+mix_target = 1
+
+[connection signal="pressed" from="CanvasLayer/MainMenu/MainContainer/Start_button" to="CanvasLayer/MainMenu" method="_on_start_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainMenu/MainContainer/Option_button" to="CanvasLayer/MainMenu" method="_on_option_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainMenu/MainContainer/Exit_button" to="CanvasLayer/MainMenu" method="_on_exit_button_pressed"]
+[connection signal="item_selected" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video/Resolution_Optionbutton" to="CanvasLayer/MainMenu" method="_on_resolution_optionbutton_item_selected"]
+[connection signal="item_selected" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video/WindowMode_Optionbutton" to="CanvasLayer/MainMenu" method="_on_window_mode_optionbutton_item_selected"]
+[connection signal="item_selected" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video/Vsync_OptionButton" to="CanvasLayer/MainMenu" method="_on_vsync_option_button_item_selected"]
+[connection signal="value_changed" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Video/Preset_HSlider" to="CanvasLayer/MainMenu" method="_on_preset_h_slider_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/General_HScrollBar" to="CanvasLayer/MainMenu" method="_on_general_h_scroll_bar_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/General_HScrollBar" to="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/General_HScrollBar/Scroll_Label" method="_on_h_scroll_bar_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/Music_HScrollBar" to="CanvasLayer/MainMenu" method="_on_music_h_scroll_bar_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/Music_HScrollBar" to="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/Music_HScrollBar/Scroll_Label" method="_on_h_scroll_bar_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/SFX_HScrollBar" to="CanvasLayer/MainMenu" method="_on_sfx_h_scroll_bar_value_changed"]
+[connection signal="value_changed" from="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/SFX_HScrollBar" to="CanvasLayer/MainMenu/OptionContainer/TabContainer/Sound/SFX_HScrollBar/Scroll_Label" method="_on_h_scroll_bar_value_changed"]
+[connection signal="pressed" from="CanvasLayer/MainMenu/OptionContainer/Container/Apply_button" to="CanvasLayer/MainMenu" method="_on_apply_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainMenu/OptionContainer/Container/Return_button" to="CanvasLayer/MainMenu" method="_on_return_button_pressed"]
