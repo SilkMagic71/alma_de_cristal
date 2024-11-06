@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cc3sigo6i3d7e"
+path="res://.godot/imported/Miss You Back.mp3-99c233e523de2b46427059795303b403.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/ost/Miss You Back.mp3"
+dest_files=["res://.godot/imported/Miss You Back.mp3-99c233e523de2b46427059795303b403.mp3str"]
+
+[params]
+
+loop=true
+loop_offset=0.0
+bpm=0.0
+beat_count=0
+bar_beats=4

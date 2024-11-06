@@ -13,6 +13,10 @@ config_version=5
 config/name="Alma de Cristal"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 
+[autoload]
+
+OstPlayer="*res://cenas/globais/ost_player.tscn"
+
 [display]
 
 window/size/resizable=false

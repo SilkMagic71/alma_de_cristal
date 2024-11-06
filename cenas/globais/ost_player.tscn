@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://njcdsm1aixc4"]
+
+[ext_resource type="Script" path="res://scripts/globais/ost_player.gd" id="1_5xfxf"]
+
+[node name="OstPlayer" type="AudioStreamPlayer"]
+script = ExtResource("1_5xfxf")
+
+[connection signal="tree_exited" from="." to="." method="_on_tree_exited"]

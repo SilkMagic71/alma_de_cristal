@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Amigo" load_steps=2 format=3 uid="uid://jc64lmjfda36"]
+
+[ext_resource type="Script" path="res://scripts/classes/amigo.gd" id="1_jdl8p"]
+
+[resource]
+script = ExtResource("1_jdl8p")
+nome = "Lisa"
+vulnerabilidade = 10
