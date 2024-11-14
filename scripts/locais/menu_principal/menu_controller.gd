@@ -89,7 +89,7 @@ func _save_settings() -> void:
 
 
 func _ready():
-	OstPlayer.tocar("Miss You Back")
+	Ostplayer.tocar("Miss You Back")
 	_load_settings()
 	resolution_option_button.select(_check_resolution(display_resolution))
 
@@ -97,9 +97,10 @@ func _ready():
 func _on_start_button_pressed():
 	audio_player.stream = load("res://assets/audio/sfx/press_start_button.mp3")
 	audio_player.play()
+	Ostplayer.tocar("Every Night Of The Week - Everet Almond")
 	# Put your load scene here
 	# Check the documentation https://docs.godotengine.org/en/stable/tutorials/scripting/change_scenes_manually.html
-	pass  # Replace with function body.
+	get_tree().change_scene_to_file("res://hud.tscn")
 
 
 func _on_option_button_pressed():
