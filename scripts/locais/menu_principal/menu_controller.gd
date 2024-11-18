@@ -100,7 +100,7 @@ func _on_start_button_pressed():
 	Ostplayer.tocar("Every Night Of The Week - Everet Almond")
 	# Put your load scene here
 	# Check the documentation https://docs.godotengine.org/en/stable/tutorials/scripting/change_scenes_manually.html
-	get_tree().change_scene_to_file("res://hud.tscn")
+	get_tree().change_scene_to_file("res://Cenas/locais/lobby/lobby.tscn")
 
 
 func _on_option_button_pressed():

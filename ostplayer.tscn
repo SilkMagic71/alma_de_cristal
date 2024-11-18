@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://cjue0m0jnl7lg"]
-
-[ext_resource type="Script" path="res://ostplayer.gd" id="1_wg5qg"]
-
-[node name="ostplayer" type="AudioStreamPlayer"]
-script = ExtResource("1_wg5qg")

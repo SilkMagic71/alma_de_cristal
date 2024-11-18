@@ -17,7 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Ostplayer="*res://ostplayer.tscn"
+Ostplayer="*res://Cenas/globais/ostplayer.tscn"
 
 [global_group]
 
